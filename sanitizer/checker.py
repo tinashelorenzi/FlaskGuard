@@ -5,6 +5,7 @@
 """
 import os
 import pyclamd
+import requests
 
 def check_sql_injection(statement: str):
     """
@@ -113,3 +114,36 @@ def clamav_scan(file_path):
     except Exception as e:
         print(f"An error occured: {e}")
         return False
+
+
+def virus_totalscan(file_path):
+    """
+    Scans a file using VirusTotal to check for any malware.
+
+    Args:
+        file_path (str): The path to the file to be scanned.
+
+    Returns:
+        bool: True if the file is clean, False if it contains malware.
+
+    Raises:
+        ConnectionError: If the VirusTotal API key is not set.
+
+    """
+    api_key = os.environ.get("VIRUSTOTAL_API_KEY")
+    if api_key is None:
+        raise ConnectionError("VirusTotal API key not set")
+
+    try:
+        url = "https://www.virustotal.com/vtapi/v2/file/scan"
+        params = {"apikey": api_key, "file": open(file_path, "rb")}
+        response = requests.post(url, files=params)
+        scan_result = response.json()
+
+        if scan_result["response_code"] == 0:
+            return False
+        else:
+            return True
+
+    except Exception as e:
+        print(f"An error occured: {e}")
