@@ -1,7 +1,10 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
-import os
+"""
 
+"""
+import os
+import pyclamd
 
 def check_sql_injection(statement: str):
     """
@@ -78,3 +81,35 @@ def check_evil_keys(statement: str):
         if key in statement:
             return True
     return False
+
+
+def clamav_scan(file_path):
+    """
+    Scans a file using ClamAV to check for any malware.
+
+    Args:
+        file_path (str): The path to the file to be scanned.
+
+    Returns:
+        bool: True if the file is clean, False if it contains malware.
+
+    Raises:
+        ConnectionError: If the ClamAV daemon is not reachable.
+
+    """
+
+    try:
+        cd = pyclamd.ClamdUnixSocket()
+        if not cd.ping():
+            raise ConnectionError("Could not connect to the ClamAV Daemon")
+        
+        scan_result = cd.scan_file(file_path)
+
+        if scan_result is None:
+            return False
+        else:
+            return True
+        
+    except Exception as e:
+        print(f"An error occured: {e}")
+        return False
